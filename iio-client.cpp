@@ -189,6 +189,9 @@ int iioClient::getPollData(sensors_event_t* data)
         data[k].type = iM[index].type;
         data[k].version = sensorList[i].version;
         data[k].timestamp = get_timestamp(CLOCK_MONOTONIC);
+        if (data[k].type == SENSOR_TYPE_ACCELEROMETER) {
+           nb_channels = nb_channels - 1;
+        }
         for (int j = 0; j < nb_channels; j++) {
             struct iio_channel *ch = iio_device_get_channel(dev, j);
             if (!ch) {
