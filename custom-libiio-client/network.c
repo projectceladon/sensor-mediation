@@ -1612,6 +1612,8 @@ struct iio_context * network_create_context(const char *host)
 err_free_description:
     free(description);
 err_network_shutdown:
+    close(fd);
+    freeaddrinfo(res);
     iio_context_destroy(ctx);
     errno = -ret;
     return NULL;

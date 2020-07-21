@@ -266,6 +266,10 @@ static struct iio_device * create_device(struct iio_context *ctx, xmlNode *n)
                     sizeof(struct iio_channel *));
             if (!chns) {
                 ERROR("Unable to allocate memory\n");
+                if (chn->name)
+                   free(chn->name);
+                if (chn->id)
+                   free(chn->id);
                 free(chn);
                 goto err_free_device;
             }
@@ -346,6 +350,12 @@ static struct iio_context * iio_create_xml_context_helper(xmlDoc *doc)
     ctx->ops = &xml_ops;
 
     root = xmlDocGetRootElement(doc);
+
+    if (!root) {
+        err = -EINVAL;
+        goto err_free_ctx;
+    }
+
     if (strcmp((char *) root->name, "context")) {
         ERROR("Unrecognized XML file\n");
         err = -EINVAL;
@@ -387,6 +397,10 @@ static struct iio_context * iio_create_xml_context_helper(xmlDoc *doc)
                 sizeof(struct iio_device *));
         if (!devs) {
             ERROR("Unable to allocate memory\n");
+            if (dev->name)
+                free(dev->name);
+            if (dev->id)
+                free(dev->id);
             free(dev);
             goto err_free_devices;
         }
