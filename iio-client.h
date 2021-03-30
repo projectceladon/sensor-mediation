@@ -31,7 +31,26 @@
 
 #include "custom-libiio-client/iio.h"
 
-#define MAX_SENSOR 9
+struct iio_channel {
+	struct iio_device *dev;
+	struct iio_channel_pdata *pdata;
+	void *userdata;
+
+	bool is_output;
+	bool is_scan_element;
+	struct iio_data_format format;
+	char *name, *id;
+	long index;
+	enum iio_modifier modifier;
+	enum iio_chan_type type;
+
+	struct iio_channel_attr *attrs;
+	unsigned int nb_attrs;
+
+	unsigned int number;
+};
+
+#define MAX_SENSOR 3
 
 struct idMap {
     const char *name;

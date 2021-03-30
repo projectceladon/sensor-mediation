@@ -29,15 +29,11 @@
 
 #include "iio-client.h"
 
-struct idMap iM[MAX_SENSOR] = {{"accel_3d", 0, SENSOR_TYPE_ACCELEROMETER},
-        {"incli_3d", 1, SENSOR_TYPE_LINEAR_ACCELERATION},
-        {"gravity", 2, SENSOR_TYPE_GRAVITY},
-        {"dev_rotation", 3, SENSOR_TYPE_ROTATION_VECTOR},
-        {"magn_3d", 4, SENSOR_TYPE_MAGNETIC_FIELD},
-        {"geomagnetic_orientation", 5, SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR},
-        {"relative_orientation", 6, SENSOR_TYPE_GAME_ROTATION_VECTOR},
-        {"gyro_3d", 7, SENSOR_TYPE_GYROSCOPE},
-        {"als", 8, SENSOR_TYPE_LIGHT}};
+struct idMap iM[MAX_SENSOR] = {
+	{"accel_3d", 0, SENSOR_TYPE_ACCELEROMETER},
+        {"als", 1, SENSOR_TYPE_LIGHT},
+        {"prox", 2, SENSOR_TYPE_PROXIMITY}
+};
 
 iioClient::iioClient()
 {
