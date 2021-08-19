@@ -62,7 +62,7 @@ int iioClient::init(void)
 
     ctx = NULL;
     sensorCount = 0;
-    property_get("ipaddr", value, " ");
+    property_get("vendor.intel.ipaddr", value, " ");
     ctx = iio_create_network_context(value);
     if (!ctx) {
         ALOGE("Sensor: Error in Initializing IIO Client with N/W backend\n");
@@ -188,7 +188,7 @@ int iioClient::getPollData(sensors_event_t* data)
         data[k].sensor = iM[index].id;
         data[k].type = iM[index].type;
         data[k].version = sensorList[i].version;
-        data[k].timestamp = get_timestamp(CLOCK_MONOTONIC);
+        data[k].timestamp = get_timestamp(CLOCK_BOOTTIME);
         if (data[k].type == SENSOR_TYPE_ACCELEROMETER) {
            nb_channels = nb_channels - 1;
         }
