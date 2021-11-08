@@ -37,22 +37,22 @@
 static bool is_meta_data_pending = false;
 static iioClient iioc;
 static const struct sensor_t sSensorList[MAX_SENSOR] = {
-    {"Accelerometer",
-     "Intel",
-     1,
-     0,
-     SENSOR_TYPE_ACCELEROMETER,
-     1000,
-     1.52e-5,
-     0.0,
-     2000,
-     0,
-     0,
-     "android.sensor.accelerometer",
-     "",
-     20000,
-     SENSOR_FLAG_CONTINUOUS_MODE,
-     {},
+    {"Accelerometer", // name
+     "Intel",         // vendor
+     1,               // version
+     0,               // handle
+     SENSOR_TYPE_ACCELEROMETER, // type
+     100.0f,            // maxrange
+     1.1926889E-4,    // resolution
+     0.001f,          // Power
+     kDefaultMinDelayUs,         // minDelay in us
+     0,               // fifoReservedEventCount
+     0,               // fifoMaxEventCount
+     SENSOR_STRING_TYPE_ACCELEROMETER, // stringType
+     "",              // requiredPermission
+     kDefaultMaxDelayUs,          // maxDelay
+     SENSOR_FLAG_CONTINUOUS_MODE, // flags
+     {},              // reserved[2]
     },
     {"incli_3d",
      "Intel",
@@ -60,14 +60,14 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      1,
      SENSOR_TYPE_LINEAR_ACCELERATION,
      1000,
-     0.1,
-     0.0,
-     2000,
+     0.1f,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.inclinometer",
+     SENSOR_STRING_TYPE_LINEAR_ACCELERATION,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -77,14 +77,14 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      2,
      SENSOR_TYPE_GRAVITY,
      1000,
-     0.1,
-     0.0,
-     2000,
+     0.1f,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.gravity",
+     SENSOR_STRING_TYPE_GRAVITY,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -95,13 +95,13 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      SENSOR_TYPE_ROTATION_VECTOR,
      1000,
      0.1,
-     0.0,
-     2000,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.dev_rotation",
+     SENSOR_STRING_TYPE_ROTATION_VECTOR,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -110,15 +110,15 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      1,
      4,
      SENSOR_TYPE_MAGNETIC_FIELD,
-     1000,
-     0.1,
-     0.0,
-     2000,
+     1300.0f,
+     0.01,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.magn_3d",
+     SENSOR_STRING_TYPE_MAGNETIC_FIELD,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -129,13 +129,13 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR,
      100,
      0.1,
-     0.0,
-     2000,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.geomagnetic_orientation",
+     SENSOR_STRING_TYPE_GEOMAGNETIC_ROTATION_VECTOR,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -146,13 +146,13 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      SENSOR_TYPE_GAME_ROTATION_VECTOR,
      100,
      0.1,
-     0.0,
-     2000,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.relative_orientation",
+     SENSOR_STRING_TYPE_GAME_ROTATION_VECTOR,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -161,15 +161,15 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      1,
      7,
      SENSOR_TYPE_GYROSCOPE,
-     100,
-     0.1,
-     0.0,
-     2000,
+     1000.0f,
+     0.048852537,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.gyro_3d",
+     SENSOR_STRING_TYPE_GYROSCOPE,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_CONTINUOUS_MODE,
      {},
     },
@@ -178,15 +178,15 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      1,
      8,
      SENSOR_TYPE_LIGHT,
-     100,
-     0.1,
-     0.0,
-     2000,
+     43000.0f,
+     1.0f,
+     0.001f,
+     kDefaultMinDelayUs,
      0,
      0,
-     "android.sensor.als",
+     SENSOR_STRING_TYPE_LIGHT,
      "",
-     20000,
+     kDefaultMaxDelayUs,
      SENSOR_FLAG_ON_CHANGE_MODE,
      {},
     },
@@ -195,7 +195,7 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
 static int open_sensors(const struct hw_module_t* module, const char* id,
             struct hw_device_t** device);
 
-static int sensors__get_sensors_list(struct sensors_module_t* module,
+static int get_sensors_list(struct sensors_module_t* module,
             struct sensor_t const** list)
 {
     UNUSED(module);
@@ -220,85 +220,75 @@ struct sensors_module_t HAL_MODULE_INFO_SYM = {
         .dso = 0,
         .reserved = {},
     },
-    .get_sensors_list = sensors__get_sensors_list,
+    .get_sensors_list = get_sensors_list,
 };
 
-static int poll__poll(struct sensors_poll_device_t* dev,
+static int poll(struct sensors_poll_device_t* dev,
                     sensors_event_t* data, int count)
 {
     int evCount = 0;
-
     UNUSED(dev);
     if (count < 1)
         return -EINVAL;
+
     if (is_meta_data_pending) {
         for (int i = 0; i < MAX_SENSOR; i++) {
-            is_meta_data_pending = false;
             data[i].version = META_DATA_VERSION;
             data[i].sensor = 0;
             data[i].type = SENSOR_TYPE_META_DATA;
             data[i].reserved0 = 0;
-            data[i].timestamp = 0;
+            data[i].timestamp = iioc.get_timestamp(CLOCK_BOOTTIME);
             data[i].meta_data.sensor = i;
             data[i].meta_data.what = META_DATA_FLUSH_COMPLETE;
         }
-
         evCount = MAX_SENSOR;
+        is_meta_data_pending = false;
+        ALOGD("Flushed %d sensors", evCount);
     } else {
-        evCount = iioc.getPollData(data);
+        evCount = iioc.poll(data, count);
     }
 
     return evCount;
 }
 
-static int poll__activate(struct sensors_poll_device_t *dev,
-                                    int handle, int enabled)
+static int activate(struct sensors_poll_device_t *dev,
+                    int handle, int enabled)
 {
-    UNUSED(dev);
-    UNUSED(handle);
-    UNUSED(enabled);
-
-    return 0;
+    UNUSED(dev); //UNUSED
+    return iioc.activate(handle, enabled);
 }
 
-static int poll__setDelay(struct sensors_poll_device_t *dev,
+static int setDelay(struct sensors_poll_device_t *dev,
                                     int handle, int64_t ns)
 {
     UNUSED(dev);
-    UNUSED(handle);
-    UNUSED(ns);
-
+    ALOGD("setDelay: handle(%d), ns(%lld) ####", handle, (long long) ns);
     return 0;
 }
 
 /* Batch mode is unsupported for thermal sensor */
-static int poll__batch(struct sensors_poll_device_1* dev,
+static int batch(struct sensors_poll_device_1* dev,
         int sensor_handle, int flags,
         int64_t sampling_period_ns, int64_t max_report_latency_ns)
 {
     UNUSED(dev);
-    UNUSED(sensor_handle);
     UNUSED(flags);
-    UNUSED(sampling_period_ns);
-    UNUSED(max_report_latency_ns);
-
+    iioc.batch(sensor_handle, sampling_period_ns, max_report_latency_ns);
     return 0;
 }
 
-static int poll__flush(struct sensors_poll_device_1* dev, int handle)
+static int flush(struct sensors_poll_device_1* dev, int handle)
 {
     UNUSED(dev);
     UNUSED(handle);
     is_meta_data_pending = true;
-
     return 0;
 }
 
 /* Nothing to be cleared on close */
-static int poll__close(struct hw_device_t *dev)
+static int close(struct hw_device_t *dev)
 {
     UNUSED(dev);
-
     return 0;
 }
 
@@ -311,11 +301,12 @@ static int open_sensors(const struct hw_module_t* module, const char* id,
     dev.common.tag = HARDWARE_DEVICE_TAG;
     dev.common.version = SENSORS_DEVICE_API_VERSION_1_3;
     dev.common.module = const_cast<hw_module_t *>(module);
-    dev.common.close = poll__close;
-    dev.activate = poll__activate;
-    dev.poll = poll__poll;
-    dev.batch = poll__batch;
-    dev.flush = poll__flush;
+    dev.activate = activate;
+    dev.poll = poll;
+    dev.batch = batch;
+    dev.setDelay = setDelay;
+    dev.flush = flush;
+    dev.common.close = close;
     *device = &dev.common;
 
     return 0;
