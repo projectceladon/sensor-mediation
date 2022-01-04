@@ -32,6 +32,9 @@
 #include "custom-libiio-client/iio.h"
 
 #define MAX_SENSOR 9
+#define MAX_CHANNEL 3
+#define kDefaultMinDelayUs (10 * 1000)
+#define kDefaultMaxDelayUs (200 * 1000)
 
 struct idMap {
     const char *name;
@@ -39,19 +42,49 @@ struct idMap {
     int type;
 };
 
+struct event_info {
+    const char* name;
+    int handle;
+    sensors_event_t* event;
+    int data_count;
+    float scale;
+};
+
+struct iioclient_device {
+    const char *name;
+    const struct iio_device *dev;
+    int type;
+    double scale;
+    int raw_channel_count;
+    struct iio_channel *channel_raw[10];
+    struct iio_channel *channel_frequency;
+    float data[16];
+    unsigned int nb_channels;
+    const char *frequency_channel;
+    bool is_initialized;
+    bool is_enabled;
+    bool is_activate_pending;
+    bool activation_pending_state;
+    bool is_batch_pending;
+    int64_t sampling_period_us;
+};
+
 class iioClient {
  public:
     iioClient();
     ~iioClient();
-    int getPollData(sensors_event_t *);
+    volatile int sensorCount;
+    int poll(sensors_event_t *data, int count);
+    int activate(int handle, bool enabled);
+    int batch(int handle, int64_t sampling_period_ns, int64_t max_report_latency_ns);
+    int64_t get_timestamp(clockid_t);
 
  private:
-    sensor_t *sensorList;
-    volatile int sensorCount;
+    bool is_iioc_initialized;
+    int64_t mSamplingPeriodUs;
     struct iio_context *ctx;
-    int compare(const char *);
-    int64_t get_timestamp(clockid_t);
-    sensor_t *getSensorList(void);
-    int init(void);
+    struct iioclient_device devlist[MAX_SENSOR];
+    bool init(void);
+    int get_android_sensor_id_by_name(const char *name);
 };
 #endif  /*IIO_CLIENT_H_*/
