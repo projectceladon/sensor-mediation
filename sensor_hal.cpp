@@ -36,6 +36,7 @@
 
 static bool is_meta_data_pending = false;
 static iioClient iioc;
+#ifndef DISABLE_STATIC_SENSOR_LIST
 static const struct sensor_t sSensorList[MAX_SENSOR] = {
     {"Accelerometer",
      "Intel",
@@ -191,6 +192,7 @@ static const struct sensor_t sSensorList[MAX_SENSOR] = {
      {},
     },
 };
+#endif
 
 static int open_sensors(const struct hw_module_t* module, const char* id,
             struct hw_device_t** device);
@@ -199,9 +201,13 @@ static int sensors__get_sensors_list(struct sensors_module_t* module,
             struct sensor_t const** list)
 {
     UNUSED(module);
+#ifndef DISABLE_STATIC_SENSOR_LIST
     *list = sSensorList;
 
     return MAX_SENSOR;
+#else
+	return 0;
+#endif
 }
 
 static struct hw_module_methods_t sensors_module_methods = {
