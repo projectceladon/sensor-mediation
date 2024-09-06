@@ -9,6 +9,9 @@ LOCAL_PROPRIETARY_MODULE := true
 LOCAL_MODULE_RELATIVE_PATH := hw
 
 LOCAL_CFLAGS := -DLOG_TAG=\"SensorsHal\" -Wall
+ifeq ($(MEDIATION_HAL_DISABLE_STATIC_SENSOR_LIST), true)
+LOCAL_CFLAGS += -DDISABLE_STATIC_SENSOR_LIST
+endif
 
 LOCAL_SRC_FILES := sensor_hal.cpp iio-client.cpp \
                     custom-libiio-client/xml.c \
